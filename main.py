@@ -48,6 +48,7 @@ def new_connection():
     if save == 'y':
         logging.debug('save')
         name = input('Enter name: ')
+        #TODO: add check for name
         data.setdefault('name',name)
         conn = MConnection(data)
         conn.save()
@@ -57,7 +58,7 @@ def new_connection():
 def menu():
     reply = 0
     connections_list = []
-
+    #TODO:add opportunity delete connection from list
     while reply not in range(1,2 + len(connections_list)):
         print('1 - New connection')
         connections_list = [] #list with saved connections
@@ -82,11 +83,8 @@ def main():
     conn = None
     while conn == None:
         conn = menu()
-        if conn.is_available():
-            logging.debug('conn is available')
-            conn.connect()
+        if conn.connect():
             conn.cmd_mode()
         else:
-            logging.debug('conn is not available')
             conn = None
 
