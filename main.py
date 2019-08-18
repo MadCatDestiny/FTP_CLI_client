@@ -1,7 +1,7 @@
 from ftplib import FTP
 from connection import MConnection
 import json,os,sys,logging,datetime
-logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(levelname)s  - %(funcName)s - %(message)s')
 """
 Example:
 data = [
@@ -41,38 +41,69 @@ def new_connection():
             data.setdefault('password','guest')
         else:
             flag = None
-    data.setdefault('name','_'.join([ip,datetime.date.today()]))
+    data.setdefault('name',ip + '_' + datetime.date.today().strftime("%d.%m.%Y") )
     conn = MConnection(data)
-    logging.debug('_'.join([ip,datetime.date.today().strftime("%d.%m.%Y") ]))
+    logging.debug(ip + '_' + datetime.date.today().strftime("%d.%m.%Y") )
     save = input('Do you want save connection? <y/n>')
     if save == 'y':
         logging.debug('save')
-        name = input('Enter name: ')
-        #TODO: add check for name
+        flag = False
+        name = ''
+        while not flag:
+            name = input('Enter name: ')
+            data['name'] = name
+            if flag != '':
+                for char in name:
+                    if char != ' ':
+                        flag = True
+
         data.setdefault('name',name)
         conn = MConnection(data)
         conn.save()
 
     return conn
 
+def delete_cn(num):
+    f = open('connection.json','r')
+    data = json.load(f)
+    data.pop(num-2)
+    logging.debug('data len after remove' + str(len(data)))
+    f.close()
+    f = open('connection.json','w')
+    json.dump(data,f)
+    f.close()
 def menu():
     reply = 0
     connections_list = []
     #TODO:add opportunity delete connection from list
+    logging.debug('Start menu')
     while reply not in range(1,2 + len(connections_list)):
+        print('0 - Delete connection')
         print('1 - New connection')
         connections_list = [] #list with saved connections
-        if os.path.exists('./connections.json'):
-            f = open('connections.json','rb')
+        path = os.path.abspath('./')
+        logging.debug(path + '\\connections.json')
+        if os.path.isfile(path + '\\connection.json'):
+            logging.debug('json exists')
+            f = open('connection.json','r')
             connections_list = json.load(f)
             f.close()
-            for item,i in connections_list,range(len(connections_list)):
-                print(str(i+2) + ' - {0} ( {1}::{2}'.format(item['name'],item['ip'],item['port']))
+            logging.debug('len(connections_list): ' + str(len(connections_list)))
+            i = 0
+            for item in connections_list:
+                print(str(i+2) + ' - {0} ( {1}::{2} )'.format(item['name'],item['ip'],item['port']))
+                i += 1
         reply = int(input('>>>'))
-        flag = reply in range(1,2+len(connections_list))
+        flag = reply in range(1, 2+len(connections_list))
         logging.debug('reply in range: %s' %str(flag))
-        if reply == 1 and flag:
+        if reply == 1:
             return new_connection()
+        elif reply == 0:
+            rp = int(input('Enter number of connection? Enter 0 to exit'))
+            logging.debug(str( rp in range(1, 2 + len(connections_list))))
+            if rp in range(1, 2 + len(connections_list)):
+                logging.debug('reply in range for delete')
+                delete_cn(rp)
         elif flag:
             return MConnection(connections_list[reply-2])
 
@@ -82,9 +113,11 @@ def menu():
 def main():
     conn = None
     while conn == None:
+        logging.debug('Conn is none')
         conn = menu()
         if conn.connect():
             conn.cmd_mode()
         else:
             conn = None
 
+main()

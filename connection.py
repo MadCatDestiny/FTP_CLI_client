@@ -1,10 +1,11 @@
 from ftplib import FTP,error_perm
 import json,os,sys,logging
-logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(levelname)s  - %(funcName)s - %(message)s')
 
 class MConnection():
     ftp = None
     data = None
+
     def __init__(self,data):
         """
         :param data: dictionary with keys: name,ip,port,login,password
@@ -13,7 +14,28 @@ class MConnection():
             logging.debug('data is not dict in __init__')
             raise TypeError
         self.data = data
+        self.func_dic = {'RETR': self.retr, 'STOR': self.stor, 'CWD': self.cwd}
 
+    def retr(self,args):
+        source_path = args[0]
+        current_path = os.path.abspath('./')
+        if args[1] != '':
+           current_path = args[1]
+
+        if os.path.isfile(current_path):
+            with open(current_path, 'wb') as f:
+                logging.debug(self.ftp.retrbinary('RETR ' + source_path, f.write))
+        pass
+
+    def stor(self,source_path,current_path):
+        if os.path.isfile(current_path):
+            with open(current_path, 'rb') as f:
+                logging.debug(self.ftp.storbinary('STOR ' + r'Blocks\S.txt', f))
+        pass
+
+    def cwd(self,path):
+        self.ftp.cwd(path)
+        pass
 
     def connect(self):
         if self.ftp == None:
@@ -23,7 +45,6 @@ class MConnection():
                 res = ftp.connect(self.data['ip'],self.data['port'])
                 if res.startswith('220'):
                     logging.debug(res)
-                    return True
             except Exception as e:
                 logging.debug(str(e))
                 return False
@@ -55,8 +76,8 @@ class MConnection():
             else:
                 try:
                     res = ftp.login(self.data['login'], self.data['password'])
+                    logging.debug(res)
                     if res.startswith('230'):
-                        logging.debug(res)
                         return True
                 except error_perm as e:
                     logging.debug(str(e))
@@ -66,6 +87,10 @@ class MConnection():
         s = '>>>'
         while True:
             res = input(s)
+            splited = res.split(' ')
+            self.data[splited[0]](splited[1:])
+            if res == 'exit()':
+                return 0
 
     def save(self):
         if os.path.exists('./connections.json'):
@@ -81,7 +106,7 @@ class MConnection():
             f.close()
         else:
             logging.debug('json not exists')
-            f = open('connection.json', 'wb')
+            f = open('connection.json', 'w')
             conns = []
             conns.append(self.data)
             json.dump(conns,f)
