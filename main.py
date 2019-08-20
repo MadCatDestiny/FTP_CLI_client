@@ -1,6 +1,11 @@
 from ftplib import FTP
 from connection import MConnection
-import json,os,sys,logging,datetime,argparse
+import json
+import os
+import sys
+import logging
+import datetime
+import argparse
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(levelname)s  - %(funcName)s - %(message)s')
 """
 Example:
@@ -110,7 +115,7 @@ def menu():
         elif flag:
             return MConnection(connections_list[reply-2])
 
-def i_main():
+def interactive_main():
     conn = None
     while conn == None:
         logging.debug('Conn is none')
@@ -122,7 +127,7 @@ def i_main():
         else:
             conn = None
 
-def c_main(args):
+def cmd_main(args):
     splited = args.login.split('@')
     data = \
         {
@@ -186,9 +191,9 @@ def main():
 
     args  = parser.parse_args()
     if args.interactive:
-        i_main()
+        interactive_main()
     else:
-        c_main(args)
+        cmd_main(args)
 
 
 if __name__ == '__main__':
