@@ -17,32 +17,59 @@ class MConnection():
         self.func_dic = {'RETR': self.retr, 'STOR': self.stor, 'CWD': self.cwd}
 
     def retr(self,args):
-        source_path = args[0]
-        current_path = os.path.abspath('./')
+        """
+
+        :param args: [<remote path>,<local path>]
+        :return: True if transfer will be complete,else False
+        """
+        remote_path = args[0]
+        local_path = os.path.abspath('./')
         if args[1] != '':
-           current_path = args[1]
+           local_path = args[1]
 
-        if os.path.isfile(current_path):
-            with open(current_path, 'wb') as f:
-                logging.debug(self.ftp.retrbinary('RETR ' + source_path, f.write))
-        pass
+        with open(local_path, 'wb') as f:
+            try:
+                logging.debug(self.ftp.retrbinary('RETR ' + remote_path, f.write))
+                return True
+            except Exception as e:
+                print(e)
+                return False
 
-    def stor(self,source_path,current_path):
-        if os.path.isfile(current_path):
-            with open(current_path, 'rb') as f:
-                logging.debug(self.ftp.storbinary('STOR ' + r'Blocks\S.txt', f))
-        pass
+    def stor(self,args):
+        """
+
+        :param args: [<remote path>,<local path>]
+        :return:True if transfer will be complete,else False
+        """
+        remote_path = args[0]
+        local_path  = args[1]
+        if os.path.isfile(local_path):
+            with open(local_path, 'rb') as f:
+                try:
+                    logging.debug(self.ftp.storbinary('STOR ' + remote_path, f))
+                    return True
+                except Exception as e:
+                    print(e)
+                    return False
 
     def cwd(self,path):
-        self.ftp.cwd(path)
-        pass
+        """
+
+        :param path: remote path
+        :return: Tr
+        """
+        try:
+            self.ftp.cwd(path)
+            return True
+        except ...:
+            return False
 
     def connect(self):
         if self.ftp == None:
             logging.debug('ftp is None')
-            ftp = FTP()
+            self.ftp = FTP()
             try:
-                res = ftp.connect(self.data['ip'],self.data['port'])
+                res = self.ftp.connect(self.data['ip'],self.data['port'])
                 if res.startswith('220'):
                     logging.debug(res)
             except Exception as e:
@@ -52,7 +79,7 @@ class MConnection():
             #try to login
             if self.data['login'] == 'anonymous':
                 try:
-                    res = ftp.login()
+                    res = self.ftp.login()
                     if res.startswith('230'):
                         logging.debug(res)
                         return True
@@ -61,7 +88,7 @@ class MConnection():
                     return False
 
                 try:
-                    res = ftp.login(self.data['login'], self.data['password'])
+                    res = self.ftp.login(self.data['login'], self.data['password'])
                     if res.startswith('230'):
                         logging.debug(res)
                         return True
@@ -75,7 +102,7 @@ class MConnection():
                 return False
             else:
                 try:
-                    res = ftp.login(self.data['login'], self.data['password'])
+                    res = self.ftp.login(self.data['login'], self.data['password'])
                     logging.debug(res)
                     if res.startswith('230'):
                         return True

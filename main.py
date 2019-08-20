@@ -1,20 +1,20 @@
 from ftplib import FTP
 from connection import MConnection
-import json,os,sys,logging,datetime
+import json,os,sys,logging,datetime,argparse
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(levelname)s  - %(funcName)s - %(message)s')
 """
 Example:
 data = [
             {
             'name':'Name of connection'
-            'ftp':'192.168.0.105',
+            'ip':'192.168.0.105',
             'port':21,
             'login':'hb1998',
             'password':'l0gpass'
             },
             {
             'name':'Name of connection2'
-            'ftp':'192.168.0.105',
+            'ip':'192.168.0.105',
             'port':21,
             'login':'hb19982',
             'password':'l0gpass2'
@@ -72,10 +72,10 @@ def delete_cn(num):
     f = open('connection.json','w')
     json.dump(data,f)
     f.close()
+
 def menu():
     reply = 0
     connections_list = []
-    #TODO:add opportunity delete connection from list
     logging.debug('Start menu')
     while reply not in range(1,2 + len(connections_list)):
         print('0 - Delete connection')
@@ -107,10 +107,7 @@ def menu():
         elif flag:
             return MConnection(connections_list[reply-2])
 
-########################################################################################################################
-#----------------------------------------------------------------------------------------------------------------------#
-########################################################################################################################
-def main():
+def i_main():
     conn = None
     while conn == None:
         logging.debug('Conn is none')
@@ -120,4 +117,43 @@ def main():
         else:
             conn = None
 
-main()
+def c_main(args):
+    splited = args.login.split('@')
+    data = \
+        {
+            'name':datetime.date.today().strftime("%d.%m.%Y") + '_withargs',
+            'ip':splited[1],
+            'port': args.port,
+            'login':splited[0]
+        }
+    if args.passw:
+        data.setdefault('password',args.passw)
+    else:
+        data.setdefault('password','')
+    mc = MConnection(data)
+    if mc.connect():
+        if args.retr and len(args.retr) == 2:
+            print(mc.retr(args.retr))
+        if args.stor and len(args.stor) == 2:
+            print(mc.stor(args.stor))
+
+########################################################################################################################
+#----------------------------------------------------------------------------------------------------------------------#
+########################################################################################################################
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('login',help='user@ip')
+    parser.add_argument('port',help='port in server',type=int,default=21)
+    parser.add_argument('-p','--passw',help='Password')
+    parser.add_argument('-r','--retr',help='RETR <server path> <local path>',nargs='+')
+    parser.add_argument('-s','--stor',help='STOR <server path> <local path>',nargs='+')
+    parser.add_argument('-i','--interactive',help='Interactive mode')
+    args  = parser.parse_args()
+    if args.interactive:
+        i_main()
+    else:
+        c_main(args)
+
+
+if __name__ == '__main__':
+    main()
