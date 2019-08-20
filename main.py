@@ -78,6 +78,7 @@ def menu():
     connections_list = []
     logging.debug('Start menu')
     while reply not in range(1,2 + len(connections_list)):
+        print('-1 - Close program')
         print('0 - Delete connection')
         print('1 - New connection')
         connections_list = [] #list with saved connections
@@ -94,6 +95,8 @@ def menu():
                 print(str(i+2) + ' - {0} ( {1}::{2} )'.format(item['name'],item['ip'],item['port']))
                 i += 1
         reply = int(input('>>>'))
+        if reply == -1:
+            return None
         flag = reply in range(1, 2+len(connections_list))
         logging.debug('reply in range: %s' %str(flag))
         if reply == 1:
@@ -112,6 +115,8 @@ def i_main():
     while conn == None:
         logging.debug('Conn is none')
         conn = menu()
+        if conn == None:
+            return
         if conn.connect():
             conn.cmd_mode()
         else:
@@ -133,9 +138,29 @@ def c_main(args):
     mc = MConnection(data)
     if mc.connect():
         if args.retr and len(args.retr) == 2:
-            print(mc.retr(args.retr))
+            print('RETR: %s' %mc.retr(args.retr))
         if args.stor and len(args.stor) == 2:
-            print(mc.stor(args.stor))
+            print('STOR: %s' %mc.stor(args.stor))
+        if args.dele:
+            print('DELE: %s' %mc.dele(args.dele))
+        if args.rmd:
+            print('RMD: %s' %mc.rmd(args.rmd))
+        if args.mkd:
+            print('MKD: %s' %mc.mkd(args.mkd))
+        if args.list:
+            print('LIST:\n%s' %mc.list(args.list))
+        if args.cwd:
+            print('CWD {0}\n{1}'.format(mc.cwd(args.cwd),args.cwd))
+        if args.size:
+            print('SIZE: %s' %mc.size(args.size))
+        if args.syst:
+            print('SYST: %s' %mc.syst())
+        if args.cdup:
+            print('CDUP: %s' %mc.cdup())
+        if args.rnfr and len(args.rnfr) == 2:
+            print('RNFR {0} RNTO {1} : {2}'.format(args.rnfr[0],args.rnfr[1],mc.rnfr(args.rnfr)))
+        if args.pwd:
+            print('PWD: %s' %mc.pwd())
 
 ########################################################################################################################
 #----------------------------------------------------------------------------------------------------------------------#
@@ -147,7 +172,18 @@ def main():
     parser.add_argument('-p','--passw',help='Password')
     parser.add_argument('-r','--retr',help='RETR <server path> <local path>',nargs='+')
     parser.add_argument('-s','--stor',help='STOR <server path> <local path>',nargs='+')
-    parser.add_argument('-i','--interactive',help='Interactive mode')
+    parser.add_argument('-i','--interactive',help='Interactive mode',action='count')
+    parser.add_argument('-d','--dele',help='DELE <server path>')
+    parser.add_argument('--rmd',help='RMD <server path>')
+    parser.add_argument('--mkd',help='MKD <server path>')
+    parser.add_argument('-l','--list',help='LIST <server path>*',action='store_const',const='./')
+    parser.add_argument('-c','--cwd',help='CWD <server path>')
+    parser.add_argument('--size',help='SIZE <server path>')
+    parser.add_argument('--syst',help='SYST',action='count')
+    parser.add_argument('--cdup',help='CDUP', action='count')
+    parser.add_argument('--rnfr',help='RNFR <rename from> <rename to>',nargs='+')
+    parser.add_argument('--pwd',help='PWD',action='count')
+
     args  = parser.parse_args()
     if args.interactive:
         i_main()

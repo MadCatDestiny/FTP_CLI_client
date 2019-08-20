@@ -14,7 +14,86 @@ class MConnection():
             logging.debug('data is not dict in __init__')
             raise TypeError
         self.data = data
-        self.func_dic = {'RETR': self.retr, 'STOR': self.stor, 'CWD': self.cwd}
+        self.func_dic = \
+            {
+                'RETR': self.retr,
+                'STOR': self.stor,
+                'CWD': self.cwd,
+                'DELE':self.dele,
+                'RMD':self.rmd,
+                'MKD':self.mkd,
+                'LIST':self.list,
+                'SIZE':self.size,
+                'SYST':self.syst,
+                'CDUP':self.cdup,
+                'PWD':self.pwd,
+                'RNFR':self.rnfr
+            }
+
+    def rnfr(self,args):
+        try:
+            logging.debug(self.ftp.rename(args[0],args[-1]))
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    def pwd(self):
+        return self.ftp.pwd()
+
+    def cdup(self):
+        try:
+            logging.debug(self.ftp.sendcmd('CDUP'))
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    def syst(self):
+        return self.ftp.sendcmd('SYST')
+
+    def size(self,path):
+        try:
+            size = self.ftp.size(path)
+            return size
+        except Exception as e:
+            print(e)
+            return -1
+
+    def list(self,path):
+        try:
+            res = ''
+            if path == './':
+                res = self.ftp.dir()
+            else:
+                res = self.ftp.dir(path)
+            return res
+        except Exception as e:
+            return e
+
+    def mkd(self,path):
+        try:
+            logging.debug(self.ftp.mkd(path))
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    def rmd(self,path):
+        try:
+            self.ftp.rmd(path)
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    def dele(self,path):
+        try:
+            logging.debug(self.ftp.delete(path))
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
     def retr(self,args):
         """
@@ -59,9 +138,10 @@ class MConnection():
         :return: Tr
         """
         try:
-            self.ftp.cwd(path)
+            logging.debug(self.ftp.cwd(path))
             return True
-        except ...:
+        except Exception as e:
+            print(e)
             return False
 
     def connect(self):
