@@ -1,12 +1,15 @@
-from ftplib import FTP,error_perm
-import json,os,sys,logging
-logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(levelname)s  - %(funcName)s - %(message)s')
+from ftplib import FTP
+from ftplib import error_perm
+import json
+import os
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s  - %(funcName)s - %(message)s')
 
 class MConnection():
     ftp = None
     data = None
 
-    def __init__(self,data):
+    def __init__(self, data):
         """
         :param data: dictionary with keys: name,ip,port,login,password
         """
@@ -19,20 +22,20 @@ class MConnection():
                 'RETR': self.retr,
                 'STOR': self.stor,
                 'CWD': self.cwd,
-                'DELE':self.dele,
-                'RMD':self.rmd,
-                'MKD':self.mkd,
-                'LIST':self.list,
-                'SIZE':self.size,
-                'SYST':self.syst,
-                'CDUP':self.cdup,
-                'PWD':self.pwd,
-                'RNFR':self.rnfr
+                'DELE': self.dele,
+                'RMD': self.rmd,
+                'MKD': self.mkd,
+                'LIST': self.list,
+                'SIZE': self.size,
+                'SYST': self.syst,
+                'CDUP': self.cdup,
+                'PWD': self.pwd,
+                'RNFR': self.rnfr
             }
 
-    def rnfr(self,args):
+    def rnfr(self, args):
         try:
-            logging.debug(self.ftp.rename(args[0],args[-1]))
+            logging.debug(self.ftp.rename(args[0], args[-1]))
             return True
         except Exception as e:
             print(e)
@@ -52,7 +55,7 @@ class MConnection():
     def syst(self):
         return self.ftp.sendcmd('SYST')
 
-    def size(self,path):
+    def size(self, path):
         try:
             size = self.ftp.size(path)
             return size
@@ -60,7 +63,7 @@ class MConnection():
             print(e)
             return -1
 
-    def list(self,path):
+    def list(self, path):
         try:
             res = ''
             if path == './':
@@ -71,7 +74,7 @@ class MConnection():
         except Exception as e:
             return e
 
-    def mkd(self,path):
+    def mkd(self, path):
         try:
             logging.debug(self.ftp.mkd(path))
             return True
@@ -79,7 +82,7 @@ class MConnection():
             print(e)
             return False
 
-    def rmd(self,path):
+    def rmd(self, path):
         try:
             self.ftp.rmd(path)
             return True
@@ -87,7 +90,7 @@ class MConnection():
             print(e)
             return False
 
-    def dele(self,path):
+    def dele(self, path):
         try:
             logging.debug(self.ftp.delete(path))
             return True
@@ -95,7 +98,7 @@ class MConnection():
             print(e)
             return False
 
-    def retr(self,args):
+    def retr(self, args):
         """
 
         :param args: [<remote path>,<local path>]
@@ -114,7 +117,7 @@ class MConnection():
                 print(e)
                 return False
 
-    def stor(self,args):
+    def stor(self, args):
         """
 
         :param args: [<remote path>,<local path>]
@@ -131,7 +134,7 @@ class MConnection():
                     print(e)
                     return False
 
-    def cwd(self,path):
+    def cwd(self, path):
         """
 
         :param path: remote path
@@ -145,18 +148,18 @@ class MConnection():
             return False
 
     def connect(self):
-        if self.ftp == None:
+        if self.ftp is None:
             logging.debug('ftp is None')
             self.ftp = FTP()
             try:
-                res = self.ftp.connect(self.data['ip'],self.data['port'])
+                res = self.ftp.connect(self.data['ip'], self.data['port'])
                 if res.startswith('220'):
                     logging.debug(res)
             except Exception as e:
                 logging.debug(str(e))
                 return False
 
-            #try to login
+            # try to login
             if self.data['login'] == 'anonymous':
                 try:
                     res = self.ftp.login()
@@ -202,19 +205,19 @@ class MConnection():
     def save(self):
         if os.path.exists('./connections.json'):
             logging.debug('json exists')
-            f = open('connection.json','rb')
+            f = open('connection.json', 'rb')
             conns = json.load(f)
             f.close()
             logging.debug(str(conns))
             if self.data not in conns:
                 conns.append(self.data)
             f = open('connection.json', 'wb')
-            json.dump(conns,f)
+            json.dump(conns, f)
             f.close()
         else:
             logging.debug('json not exists')
             f = open('connection.json', 'w')
             conns = []
             conns.append(self.data)
-            json.dump(conns,f)
+            json.dump(conns, f)
             f.close()
