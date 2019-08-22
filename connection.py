@@ -63,13 +63,14 @@ class MConnection():
             print(e)
             return -1
 
-    def list(self, path):
+    def list(self, path='./'):
         try:
-            res = ''
+            res = 'Empty'
             if path == './':
                 res = self.ftp.dir()
             else:
                 res = self.ftp.dir(path)
+            logging.debug(res)
             return res
         except Exception as e:
             return e
@@ -197,21 +198,26 @@ class MConnection():
         s = '>>>'
         while True:
             res = input(s)
-            splited = res.split(' ')
-            self.data[splited[0]](splited[1:])
             if res == 'exit()':
                 return 0
+            splited = res.split(' ')
+            if len(splited) > 2:
+                print(self.func_dic[splited[0]](splited[1:]))
+            else:
+                print(self.func_dic[splited[0]]())
+
 
     def save(self):
-        if os.path.exists('./connections.json'):
+
+        if os.path.isfile('./connection.json'):
             logging.debug('json exists')
-            f = open('connection.json', 'rb')
+            f = open('connection.json', 'r')
             conns = json.load(f)
             f.close()
             logging.debug(str(conns))
             if self.data not in conns:
                 conns.append(self.data)
-            f = open('connection.json', 'wb')
+            f = open('connection.json', 'w')
             json.dump(conns, f)
             f.close()
         else:

@@ -4,7 +4,7 @@ import os
 import logging
 import datetime
 import argparse
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s  - %(funcName)s - %(message)s')
+logging.basicConfig(level=logging.CRITICAL, format='%(asctime)s - %(levelname)s  - %(funcName)s - %(message)s')
 """
 Example:
 data = [
@@ -81,7 +81,7 @@ def delete_cn(num):
 
 
 def menu():
-    reply = 0
+    reply = None
     connections_list = []
     logging.debug('Start menu')
     while reply not in range(1, 2 + len(connections_list)):
@@ -101,7 +101,11 @@ def menu():
             for item in connections_list:
                 print(str(i+2) + ' - {0} ( {1}::{2} )'.format(item['name'], item['ip'], item['port']))
                 i += 1
-        reply = int(input('>>>'))
+        try:
+            reply = int(input('>>>'))
+        except Exception as e:
+            print(e)
+            reply = None
         if reply == -1:
             return -1
         flag = reply in range(1, 2+len(connections_list))
@@ -178,8 +182,8 @@ def cmd_main(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('login', help='user@ip')
-    parser.add_argument('port', help='port in server', type=int, default=21)
+    parser.add_argument('login', help='user@ip', default='@ftp.ru.debian.org', nargs='?')
+    parser.add_argument('port', help='port in server', type=int, default=21, nargs='?')
     parser.add_argument('-p', '--passw', help='Password')
     parser.add_argument('-r', '--retr', help='RETR <server path> <local path>', nargs='+')
     parser.add_argument('-s', '--stor', help='STOR <server path> <local path>', nargs='+')
@@ -196,6 +200,7 @@ def main():
     parser.add_argument('--pwd', help='PWD', action='count')
 
     args = parser.parse_args()
+    logging.debug(args)
     if args.interactive:
         interactive_main()
     else:
